@@ -6,7 +6,7 @@ class Bigs {
 	inline public static var BASE:Int = 10000000; // 1e7
 	inline public static var DOUBLE_BASE = 100000000000000.0; // 1e14
 	inline public static var LOG_BASE:Int = 7;
-	public static var MAX_INT(default, null):Int = #if js js.Syntax.code("9007199254740992") #else 2147483647 #end;
+	public static var MAX_INT(default, null):Int = 10000000;
 	public static var MAX_INT_ARR(default, null) = smallToArray(MAX_INT);
 	public static var LOG_MAX_INT(default, null) = Math.log(MAX_INT);
 
@@ -223,8 +223,8 @@ class Bigs {
 			difference = a[i] + carry;
 			carry = Math.floor(difference / BASE);
 			// Chrome resolves -1 % 1 to -0 and -0 < 0 == true, Std.int fixes this with -0 | 0 = 0
-			remainder = Std.int(difference % BASE);
-			r[i] = difference < -BASE ? (remainder < 0 ? remainder + BASE : remainder) : difference;
+			// Code below normalize result. Returns always integer in range [0, BASE) even for negative input.
+			r[i] = (Std.int(difference % BASE) + BASE) % BASE;
 		}
 
 		var n = arrayToSmall(r);
@@ -383,8 +383,17 @@ class Bigs {
 			b_l = b.length,
 			result = createFloatArray(b.length),
 			divisorMostSignificantDigit:Float = b[b_l - 1]#if (neko || eval) + 0.0 #end, // normalization
-		lambda = Math.ceil(BASE / (2 * divisorMostSignificantDigit)), remainder:Array<Float> = multiplySmall(a,
-			lambda).map(function(v):Float return v), divisor = multiplySmall(b, lambda), quotientDigit:Float, shift, carry:Float, borrow:Float, i, l, q:Float;
+		lambda = Math.ceil(BASE / (2 * divisorMostSignificantDigit)),
+		remainder:Array<Float>
+		= multiplySmall(a, lambda).map(function(v):Float return v),
+		divisor = multiplySmall(b, lambda),
+		quotientDigit:Float,
+		shift,
+		carry:Float,
+		borrow:Float,
+		i,
+		l,
+		q:Float;
 		if (remainder.length <= a_l)
 			remainder.push(0.0);
 		divisor.push(0);
@@ -438,9 +447,9 @@ class Bigs {
 			small: arrayToSmall(arr),
 			big: arr
 		}, r = {
-				small: arrayToSmall(remainder),
-				big: remainder
-			};
+			small: arrayToSmall(remainder),
+			big: remainder
+		};
 		return [q, r];
 	}
 
