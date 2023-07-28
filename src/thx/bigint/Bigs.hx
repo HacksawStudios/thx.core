@@ -382,17 +382,16 @@ class Bigs {
 			b_l = b.length,
 			result = createFloatArray(b.length),
 			divisorMostSignificantDigit:Float = b[b_l - 1]#if (neko || eval) + 0.0 #end, // normalization
-		lambda = Math.ceil(BASE / (2 * divisorMostSignificantDigit)),
-		remainder:Array<Float>
-		= multiplySmall(a, lambda).map(function(v):Float return v),
-		divisor = multiplySmall(b, lambda),
-		quotientDigit:Float,
-		shift,
-		carry:Float,
-		borrow:Float,
-		i,
-		l,
-		q:Float;
+			lambda = Math.ceil(BASE / (2 * divisorMostSignificantDigit)),
+			remainder:Array<Float> = multiplySmall(a, lambda).map(function(v):Float return v),
+			divisor = multiplySmall(b, lambda),
+			quotientDigit:Float,
+			shift,
+			carry:Float,
+			borrow:Float,
+			i,
+			l,
+			q:Float;
 		if (remainder.length <= a_l)
 			remainder.push(0.0);
 		divisor.push(0);
