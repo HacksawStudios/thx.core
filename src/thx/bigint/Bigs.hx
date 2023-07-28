@@ -225,7 +225,7 @@ class Bigs {
 			difference = a[i] + carry;
 			carry = Math.floor(difference / BASE);
 			// Chrome resolves -1 % 1 to -0 and -0 < 0 == true, Std.int fixes this with -0 | 0 = 0
-			// Code below normalize result. Returns always integer in range [0, BASE] even for negative input.
+			// Normalize to integer in range [0, BASE], even for negative input.
 			r[i] = (Std.int(difference % BASE) + BASE) % BASE;
 		}
 
