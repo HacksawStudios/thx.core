@@ -8,6 +8,9 @@ class Bigs {
 	inline public static var LOG_BASE:Int = 7;
 	public static var MAX_BASE_ARR(default, null) = smallToArray(BASE);
 	public static var LOG_MAX_BASE(default, null) = Math.log(BASE);
+	public static var MAX_INT(default, null):Int = #if js js.Syntax.code("9007199254740992") #else 2147483647 #end;
+	public static var MAX_INT_ARR(default, null) = smallToArray(MAX_INT);
+	public static var LOG_MAX_INT(default, null) = Math.log(MAX_INT);
 
 	public static var powersOfTwo(default, null) = (function() {
 		var powers = [1];
@@ -132,7 +135,7 @@ class Bigs {
 		return add(b, a);
 	}
 
-	public static function addSmall(a:Array<Int>, carry:Int):Array<Int> { // assumes a is array, carry is number with 0 <= carry < MAX_INT
+	public static function addSmall(a:Array<Int>, carry:Int):Array<Int> { // assumes a is array, carry is number with 0 <= carry < BASE
 		var l = a.length,
 			r = #if js js.Syntax.code("new Array")(l) #else [] #end,
 			sum,
@@ -211,7 +214,7 @@ class Bigs {
 		return new Big(value, sign);
 	}
 
-	public static function subtractSmall(a:Array<Int>, b:Int, sign:Bool):BigIntImpl { // assumes a is array, b is number with 0 <= b < MAX_INT
+	public static function subtractSmall(a:Array<Int>, b:Int, sign:Bool):BigIntImpl { // assumes a is array, b is number with 0 <= b < BASE
 		var l = a.length,
 			r = #if js js.Syntax.code("new Array")(l) #else [] #end,
 			carry = -b,
