@@ -6,6 +6,8 @@ class Bigs {
 	inline public static var BASE:Int = 10000000; // 1e7
 	inline public static var DOUBLE_BASE = 100000000000000.0; // 1e14
 	inline public static var LOG_BASE:Int = 7;
+	public static var MAX_BASE_ARR(default, null) = smallToArray(BASE);
+	public static var LOG_MAX_BASE(default, null) = Math.log(BASE);
 	public static var MAX_INT(default, null):Int = #if js js.Syntax.code("9007199254740992") #else 2147483647 #end;
 	public static var MAX_INT_ARR(default, null) = smallToArray(MAX_INT);
 	public static var LOG_MAX_INT(default, null) = Math.log(MAX_INT);
@@ -22,7 +24,7 @@ class Bigs {
 	public static var bigHighestPower2(default, null):BigIntImpl = new Small(highestPower2);
 
 	public static function isPrecise(value:Int)
-		return -MAX_INT < value && value < MAX_INT;
+		return -BASE < value && value < BASE;
 
 	public static function canMultiply(a:Int, b:Int) {
 		if (a == 0 || b == 0)
@@ -68,7 +70,7 @@ class Bigs {
 	public static function arrayToSmall(arr:Array<Int>):Null<Int> {
 		trim(arr);
 		var length = arr.length;
-		if (length < 4 && compareToAbs(arr, MAX_INT_ARR) < 0) {
+		if (length < 4 && compareToAbs(arr, MAX_BASE_ARR) < 0) {
 			switch (length) {
 				case 0:
 					return 0;
@@ -133,7 +135,7 @@ class Bigs {
 		return add(b, a);
 	}
 
-	public static function addSmall(a:Array<Int>, carry:Int):Array<Int> { // assumes a is array, carry is number with 0 <= carry < MAX_INT
+	public static function addSmall(a:Array<Int>, carry:Int):Array<Int> { // assumes a is array, carry is number with 0 <= carry < BASE
 		var l = a.length,
 			r = #if js js.Syntax.code("new Array")(l) #else [] #end,
 			sum,
@@ -212,7 +214,7 @@ class Bigs {
 		return new Big(value, sign);
 	}
 
-	public static function subtractSmall(a:Array<Int>, b:Int, sign:Bool):BigIntImpl { // assumes a is array, b is number with 0 <= b < MAX_INT
+	public static function subtractSmall(a:Array<Int>, b:Int, sign:Bool):BigIntImpl { // assumes a is array, b is number with 0 <= b < BASE
 		var l = a.length,
 			r = #if js js.Syntax.code("new Array")(l) #else [] #end,
 			carry = -b,
@@ -223,8 +225,8 @@ class Bigs {
 			difference = a[i] + carry;
 			carry = Math.floor(difference / BASE);
 			// Chrome resolves -1 % 1 to -0 and -0 < 0 == true, Std.int fixes this with -0 | 0 = 0
-			remainder = Std.int(difference % BASE);
-			r[i] = difference < -BASE ? (remainder < 0 ? remainder + BASE : remainder) : difference;
+			// Normalize to integer in range [0, BASE], even for negative input.
+			r[i] = (Std.int(difference % BASE) + BASE) % BASE;
 		}
 
 		var n = arrayToSmall(r);
@@ -383,8 +385,16 @@ class Bigs {
 			b_l = b.length,
 			result = createFloatArray(b.length),
 			divisorMostSignificantDigit:Float = b[b_l - 1]#if (neko || eval) + 0.0 #end, // normalization
-		lambda = Math.ceil(BASE / (2 * divisorMostSignificantDigit)), remainder:Array<Float> = multiplySmall(a,
-			lambda).map(function(v):Float return v), divisor = multiplySmall(b, lambda), quotientDigit:Float, shift, carry:Float, borrow:Float, i, l, q:Float;
+			lambda = Math.ceil(BASE / (2 * divisorMostSignificantDigit)),
+			remainder:Array<Float> = multiplySmall(a, lambda).map(function(v):Float return v),
+			divisor = multiplySmall(b, lambda),
+			quotientDigit:Float,
+			shift,
+			carry:Float,
+			borrow:Float,
+			i,
+			l,
+			q:Float;
 		if (remainder.length <= a_l)
 			remainder.push(0.0);
 		divisor.push(0);
@@ -541,7 +551,7 @@ class Bigs {
 		}
 		var length = text.length;
 
-		if (length <= LOG_MAX_INT / Math.log(base))
+		if (length <= LOG_MAX_BASE / Math.log(base))
 			return new Small(Ints.parse(text, base) * (isNegative ? -1 : 1));
 
 		var digits:Array<Small> = [];
