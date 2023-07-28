@@ -6,9 +6,8 @@ class Bigs {
 	inline public static var BASE:Int = 10000000; // 1e7
 	inline public static var DOUBLE_BASE = 100000000000000.0; // 1e14
 	inline public static var LOG_BASE:Int = 7;
-	public static var MAX_INT(default, null):Int = 10000000;
-	public static var MAX_INT_ARR(default, null) = smallToArray(MAX_INT);
-	public static var LOG_MAX_INT(default, null) = Math.log(MAX_INT);
+	public static var MAX_BASE_ARR(default, null) = smallToArray(BASE);
+	public static var LOG_MAX_BASE(default, null) = Math.log(BASE);
 
 	public static var powersOfTwo(default, null) = (function() {
 		var powers = [1];
@@ -22,7 +21,7 @@ class Bigs {
 	public static var bigHighestPower2(default, null):BigIntImpl = new Small(highestPower2);
 
 	public static function isPrecise(value:Int)
-		return -MAX_INT < value && value < MAX_INT;
+		return -BASE < value && value < BASE;
 
 	public static function canMultiply(a:Int, b:Int) {
 		if (a == 0 || b == 0)
@@ -68,7 +67,7 @@ class Bigs {
 	public static function arrayToSmall(arr:Array<Int>):Null<Int> {
 		trim(arr);
 		var length = arr.length;
-		if (length < 4 && compareToAbs(arr, MAX_INT_ARR) < 0) {
+		if (length < 4 && compareToAbs(arr, MAX_BASE_ARR) < 0) {
 			switch (length) {
 				case 0:
 					return 0;
@@ -223,7 +222,7 @@ class Bigs {
 			difference = a[i] + carry;
 			carry = Math.floor(difference / BASE);
 			// Chrome resolves -1 % 1 to -0 and -0 < 0 == true, Std.int fixes this with -0 | 0 = 0
-			// Code below normalize result. Returns always integer in range [0, BASE) even for negative input.
+			// Code below normalize result. Returns always integer in range [0, BASE] even for negative input.
 			r[i] = (Std.int(difference % BASE) + BASE) % BASE;
 		}
 
@@ -447,9 +446,9 @@ class Bigs {
 			small: arrayToSmall(arr),
 			big: arr
 		}, r = {
-			small: arrayToSmall(remainder),
-			big: remainder
-		};
+				small: arrayToSmall(remainder),
+				big: remainder
+			};
 		return [q, r];
 	}
 
@@ -550,7 +549,7 @@ class Bigs {
 		}
 		var length = text.length;
 
-		if (length <= LOG_MAX_INT / Math.log(base))
+		if (length <= LOG_MAX_BASE / Math.log(base))
 			return new Small(Ints.parse(text, base) * (isNegative ? -1 : 1));
 
 		var digits:Array<Small> = [];
